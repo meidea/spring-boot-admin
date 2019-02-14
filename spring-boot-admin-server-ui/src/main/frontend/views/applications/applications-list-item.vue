@@ -43,6 +43,14 @@
                            v-if="instance.isUnregisterable"
                            @click.stop="$emit('unregister', instance)"
           />
+
+          <sba-icon-button icon="times-circle"
+                           v-if="instance.statusInfo.status == 'UP'"
+          />
+
+          <sba-icon-button icon="check-circle"
+                           v-if="instance.statusInfo.status == 'OUT_OF_SERVICE'"
+          />
         </template>
       </instances-list>
     </div>
