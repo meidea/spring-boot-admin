@@ -23,6 +23,8 @@ import de.codecentric.boot.admin.server.eventstore.InMemoryEventStore;
 import de.codecentric.boot.admin.server.eventstore.InstanceEventStore;
 import de.codecentric.boot.admin.server.services.EndpointDetectionTrigger;
 import de.codecentric.boot.admin.server.services.EndpointDetector;
+import de.codecentric.boot.admin.server.services.EnvUpdateTrigger;
+import de.codecentric.boot.admin.server.services.EnvUpdater;
 import de.codecentric.boot.admin.server.services.HashingInstanceUrlIdGenerator;
 import de.codecentric.boot.admin.server.services.InfoUpdateTrigger;
 import de.codecentric.boot.admin.server.services.InfoUpdater;
@@ -134,6 +136,18 @@ public class AdminServerAutoConfiguration {
     @ConditionalOnMissingBean
     public InfoUpdateTrigger infoUpdateTrigger(InfoUpdater infoUpdater, Publisher<InstanceEvent> events) {
         return new InfoUpdateTrigger(infoUpdater, events);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public EnvUpdater envUpdater(InstanceRepository instanceRepository, InstanceWebClient instanceWebClient) {
+        return new EnvUpdater(instanceRepository, instanceWebClient);
+    }
+
+    @Bean(initMethod = "start", destroyMethod = "stop")
+    @ConditionalOnMissingBean
+    public EnvUpdateTrigger envUpdateTrigger(EnvUpdater envUpdater, Publisher<InstanceEvent> events) {
+        return new EnvUpdateTrigger(envUpdater, events);
     }
 
     @Bean

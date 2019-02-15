@@ -18,19 +18,12 @@ package de.codecentric.boot.admin.server.domain.entities;
 
 import de.codecentric.boot.admin.server.domain.events.InstanceDeregisteredEvent;
 import de.codecentric.boot.admin.server.domain.events.InstanceEndpointsDetectedEvent;
+import de.codecentric.boot.admin.server.domain.events.InstanceEnvChangedEvent;
 import de.codecentric.boot.admin.server.domain.events.InstanceEvent;
 import de.codecentric.boot.admin.server.domain.events.InstanceInfoChangedEvent;
 import de.codecentric.boot.admin.server.domain.events.InstanceRegisteredEvent;
 import de.codecentric.boot.admin.server.domain.events.InstanceRegistrationUpdatedEvent;
 import de.codecentric.boot.admin.server.domain.events.InstanceStatusChangedEvent;
-import de.codecentric.boot.admin.server.domain.values.BuildVersion;
-import de.codecentric.boot.admin.server.domain.values.Endpoint;
-import de.codecentric.boot.admin.server.domain.values.Endpoints;
-import de.codecentric.boot.admin.server.domain.values.Info;
-import de.codecentric.boot.admin.server.domain.values.InstanceId;
-import de.codecentric.boot.admin.server.domain.values.Registration;
-import de.codecentric.boot.admin.server.domain.values.StatusInfo;
-import de.codecentric.boot.admin.server.domain.values.Tags;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -41,6 +34,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nullable;
+
+import de.codecentric.boot.admin.server.domain.values.BuildVersion;
+import de.codecentric.boot.admin.server.domain.values.Endpoint;
+import de.codecentric.boot.admin.server.domain.values.Endpoints;
+import de.codecentric.boot.admin.server.domain.values.EnvInfo;
+import de.codecentric.boot.admin.server.domain.values.Info;
+import de.codecentric.boot.admin.server.domain.values.InstanceId;
+import de.codecentric.boot.admin.server.domain.values.Registration;
+import de.codecentric.boot.admin.server.domain.values.StatusInfo;
+import de.codecentric.boot.admin.server.domain.values.Tags;
 import org.springframework.util.Assert;
 
 import static java.util.Collections.emptyList;
@@ -64,6 +67,7 @@ public class Instance implements Serializable {
     private final StatusInfo statusInfo;
     private final Instant statusTimestamp;
     private final Info info;
+    private final EnvInfo envInfo;
     private final List<InstanceEvent> unsavedEvents;
     private final Endpoints endpoints;
     @Nullable
@@ -78,6 +82,7 @@ public class Instance implements Serializable {
             StatusInfo.ofUnknown(),
             Instant.EPOCH,
             Info.empty(),
+            EnvInfo.empty(),
             Endpoints.empty(),
             null,
             Tags.empty(),
@@ -92,6 +97,7 @@ public class Instance implements Serializable {
                      StatusInfo statusInfo,
                      Instant statusTimestamp,
                      Info info,
+                     EnvInfo envInfo,
                      Endpoints endpoints,
                      @Nullable BuildVersion buildVersion,
                      Tags tags,
@@ -99,6 +105,7 @@ public class Instance implements Serializable {
         Assert.notNull(id, "'id' must not be null");
         Assert.notNull(endpoints, "'endpoints' must not be null");
         Assert.notNull(info, "'info' must not be null");
+        Assert.notNull(envInfo, "'envInfo' must not be null");
         Assert.notNull(statusInfo, "'statusInfo' must not be null");
         this.id = id;
         this.version = version;
@@ -107,6 +114,7 @@ public class Instance implements Serializable {
         this.statusInfo = statusInfo;
         this.statusTimestamp = statusTimestamp;
         this.info = info;
+        this.envInfo = envInfo;
         this.endpoints = registered && registration != null ? endpoints.withEndpoint(Endpoint.HEALTH,
             registration.getHealthUrl()
         ) : endpoints;
@@ -146,6 +154,14 @@ public class Instance implements Serializable {
             return this;
         }
         return this.apply(new InstanceInfoChangedEvent(this.id, this.nextVersion(), info), true);
+    }
+
+    public Instance withEnvInfo(EnvInfo envInfo) {
+        Assert.notNull(envInfo, "'envInfo' must not be null");
+        if (Objects.equals(this.envInfo, envInfo)) {
+            return this;
+        }
+        return this.apply(new InstanceEnvChangedEvent(this.id, this.nextVersion(), envInfo), true);
     }
 
     public Instance withStatusInfo(StatusInfo statusInfo) {
@@ -191,6 +207,7 @@ public class Instance implements Serializable {
             this.statusInfo,
             this.statusTimestamp,
             info,
+            envInfo,
             this.endpoints,
             this.buildVersion,
             this.tags,
@@ -229,6 +246,7 @@ public class Instance implements Serializable {
                 StatusInfo.ofUnknown(),
                 event.getTimestamp(),
                 Info.empty(),
+                EnvInfo.empty(),
                 Endpoints.empty(),
                 updateBuildVersion(registration.getMetadata()),
                 updateTags(registration.getMetadata()),
@@ -244,6 +262,7 @@ public class Instance implements Serializable {
                 this.statusInfo,
                 this.statusTimestamp,
                 this.info,
+                this.envInfo,
                 this.endpoints,
                 updateBuildVersion(registration.getMetadata(), this.info.getValues()),
                 updateTags(registration.getMetadata(), this.info.getValues()),
@@ -259,6 +278,7 @@ public class Instance implements Serializable {
                 statusInfo,
                 event.getTimestamp(),
                 this.info,
+                this.envInfo,
                 this.endpoints,
                 this.buildVersion,
                 this.tags,
@@ -274,6 +294,7 @@ public class Instance implements Serializable {
                 this.statusInfo,
                 this.statusTimestamp,
                 this.info,
+                this.envInfo,
                 endpoints,
                 this.buildVersion,
                 this.tags,
@@ -290,6 +311,24 @@ public class Instance implements Serializable {
                 this.statusInfo,
                 this.statusTimestamp,
                 info,
+                this.envInfo,
+                this.endpoints,
+                updateBuildVersion(metaData, info.getValues()),
+                updateTags(metaData, info.getValues()),
+                unsavedEvents
+            );
+
+        } else if (event instanceof InstanceEnvChangedEvent) {
+            EnvInfo env = ((InstanceEnvChangedEvent) event).getEnv();
+            Map<String, ?> metaData = this.registration != null ? this.registration.getMetadata() : emptyMap();
+            return new Instance(this.id,
+                event.getVersion(),
+                this.registration,
+                this.registered,
+                this.statusInfo,
+                this.statusTimestamp,
+                this.info,
+                env,
                 this.endpoints,
                 updateBuildVersion(metaData, info.getValues()),
                 updateTags(metaData, info.getValues()),
@@ -304,6 +343,7 @@ public class Instance implements Serializable {
                 StatusInfo.ofUnknown(),
                 event.getTimestamp(),
                 Info.empty(),
+                EnvInfo.empty(),
                 Endpoints.empty(),
                 null,
                 Tags.empty(),
