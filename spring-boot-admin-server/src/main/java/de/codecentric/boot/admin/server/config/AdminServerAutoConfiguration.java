@@ -30,6 +30,7 @@ import de.codecentric.boot.admin.server.services.InfoUpdateTrigger;
 import de.codecentric.boot.admin.server.services.InfoUpdater;
 import de.codecentric.boot.admin.server.services.InstanceIdGenerator;
 import de.codecentric.boot.admin.server.services.InstanceRegistry;
+import de.codecentric.boot.admin.server.services.ServiceRegsitryUpdater;
 import de.codecentric.boot.admin.server.services.StatusUpdateTrigger;
 import de.codecentric.boot.admin.server.services.StatusUpdater;
 import de.codecentric.boot.admin.server.services.endpoints.ChainingStrategy;
@@ -148,6 +149,12 @@ public class AdminServerAutoConfiguration {
     @ConditionalOnMissingBean
     public EnvUpdateTrigger envUpdateTrigger(EnvUpdater envUpdater, Publisher<InstanceEvent> events) {
         return new EnvUpdateTrigger(envUpdater, events);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ServiceRegsitryUpdater serviceRegsitryUpdater(InstanceRepository instanceRepository, InstanceWebClient instanceWebClient, StatusUpdater statusUpdater) {
+        return new ServiceRegsitryUpdater(instanceRepository, instanceWebClient, statusUpdater);
     }
 
     @Bean

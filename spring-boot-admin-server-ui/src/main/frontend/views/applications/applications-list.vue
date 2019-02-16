@@ -97,6 +97,20 @@
           this.errors.push(e);
         }
       },
+      async outOfSservice(item) {
+        try {
+          item.outOfSservice();
+        } catch (e) {
+          this.errors.push(e);
+        }
+      },
+      async upService(item) {
+        try {
+          item.upService();
+        } catch (e) {
+          this.errors.push(e);
+        }
+      },
       createSubscription() {
         const vm = this;
         vm.notificationFilterSubject = new Subject();

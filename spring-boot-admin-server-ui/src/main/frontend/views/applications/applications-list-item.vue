@@ -46,10 +46,12 @@
 
           <sba-icon-button icon="times-circle"
                            v-if="instance.statusInfo.status == 'UP'"
+                           @click.stop="$emit('outOfService', instance)"
           />
 
           <sba-icon-button icon="check-circle"
                            v-if="instance.statusInfo.status == 'OUT_OF_SERVICE'"
+                           @click.stop="$emit('upService', instance)"
           />
         </template>
       </instances-list>

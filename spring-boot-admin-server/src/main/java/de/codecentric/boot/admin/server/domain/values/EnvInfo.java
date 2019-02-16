@@ -17,11 +17,13 @@
 package de.codecentric.boot.admin.server.domain.values;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,6 +33,12 @@ import java.util.Map;
 public class EnvInfo implements Serializable {
     private static final EnvInfo EMPTY = new EnvInfo(Collections.emptyMap());
 
+    private String cloud;
+
+    private String serverPort;
+    private String ipAddress;
+    private String hostname;
+
     private final Map<String, Object> values;
 
     private EnvInfo(Map<String, Object> values) {
@@ -38,6 +46,13 @@ public class EnvInfo implements Serializable {
             this.values = Collections.emptyMap();
         } else {
             this.values = Collections.unmodifiableMap(new LinkedHashMap<>(values));
+            this.serverPort = fetchValue("commandLineArgs", "server.port");
+            if (!StringUtils.hasText(serverPort)) {
+                this.serverPort = fetchValue("server.ports", "local.server.port");
+            }
+            this.ipAddress = fetchValue("springCloudClientHostInfo", "spring.cloud.client.ipAddress");
+            this.hostname = fetchValue("springCloudClientHostInfo", "spring.cloud.client.hostname");
+            this.cloud = fetchCloud(hostname);
         }
     }
 
@@ -55,5 +70,47 @@ public class EnvInfo implements Serializable {
     @JsonAnyGetter
     public Map<String, Object> getValues() {
         return this.values;
+    }
+
+    public String fetchValue(String firstKey, String secondKey) {
+        if (!StringUtils.hasText(firstKey)) {
+            return null;
+        }
+        Object propertySources = values.get("propertySources");
+        if (null == propertySources) {
+            return null;
+        }
+        List<?> propertySourceList = (List<?>) propertySources;
+        for (Object propertySource : propertySourceList) {
+            Map<String, Object> propertySourcesMap = (Map<String, Object>) propertySource;
+            if (!propertySourcesMap.containsKey(firstKey)) {
+                continue;
+            }
+            Object value = propertySourcesMap.get(firstKey);
+            if (null == value) {
+                continue;
+            }
+            Map<String, Object> first = (Map<String, Object>) value;
+            if (!first.containsKey(secondKey)) {
+                continue;
+            }
+            return (String) first.get(secondKey);
+        }
+        return null;
+    }
+
+    public String fetchCloud(String hostname) {
+        if (!StringUtils.hasText(hostname)) {
+            return null;
+        }
+        if (hostname.endsWith(".aws.dm") || hostname.endsWith(".aws.dm.vipkid.com.cn")) {
+            return "ali";
+        } else if (hostname.endsWith(".ten.dm") || hostname.endsWith(".ten.dm.vipkid.com.cn")) {
+            return "ten";
+        } else if (hostname.endsWith(".ali.dm") || hostname.endsWith(".ali.dm.vipkid.com.cn")) {
+            return "ali";
+        } else {
+            return null;
+        }
     }
 }

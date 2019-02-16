@@ -53,6 +53,18 @@ class Instance {
     return this.axios.delete('');
   }
 
+  async outOfService() {
+    return this.axios.put(uri`outOfService`, {
+      headers: {'Accept': actuatorMimeTypes}
+    });
+  }
+
+  async upService() {
+    return this.axios.put(uri`upService`, {
+      headers: {'Accept': actuatorMimeTypes}
+    });
+  }
+
   async fetchInfo() {
     return this.axios.get(uri`actuator/info`, {
       headers: {'Accept': actuatorMimeTypes}

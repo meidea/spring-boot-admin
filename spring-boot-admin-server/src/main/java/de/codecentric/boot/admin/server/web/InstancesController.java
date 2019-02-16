@@ -22,6 +22,15 @@ import de.codecentric.boot.admin.server.domain.values.InstanceId;
 import de.codecentric.boot.admin.server.domain.values.Registration;
 import de.codecentric.boot.admin.server.eventstore.InstanceEventStore;
 import de.codecentric.boot.admin.server.services.InstanceRegistry;
+import de.codecentric.boot.admin.server.services.ServiceRegsitryUpdater;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -34,13 +43,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
@@ -55,10 +57,12 @@ public class InstancesController {
                                                                   .map(tick -> PING);
     private final InstanceRegistry registry;
     private final InstanceEventStore eventStore;
+    private final ServiceRegsitryUpdater serviceRegsitryUpdater;
 
-    public InstancesController(InstanceRegistry registry, InstanceEventStore eventStore) {
+    public InstancesController(InstanceRegistry registry, InstanceEventStore eventStore, ServiceRegsitryUpdater serviceRegsitryUpdater) {
         this.registry = registry;
         this.eventStore = eventStore;
+        this.serviceRegsitryUpdater = serviceRegsitryUpdater;
     }
 
     /**
@@ -128,6 +132,22 @@ public class InstancesController {
         return registry.deregister(InstanceId.of(id))
                        .map(v -> ResponseEntity.noContent().<Void>build())
                        .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping(path = "/instances/{id}/up")
+    public Mono<ResponseEntity<Void>> upService(@PathVariable String id) {
+        LOGGER.debug("up instance with ID '{}'", id);
+        return serviceRegsitryUpdater.upService(InstanceId.of(id))
+            .map(v -> ResponseEntity.noContent().<Void>build())
+            .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping(path = "/instances/{id}/outOfService")
+    public Mono<ResponseEntity<Void>> outOfService(@PathVariable String id) {
+        LOGGER.debug("up instance with ID '{}'", id);
+        return serviceRegsitryUpdater.outOfService(InstanceId.of(id))
+            .map(v -> ResponseEntity.noContent().<Void>build())
+            .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     @GetMapping(path = "/instances/events", produces = MediaType.APPLICATION_JSON_VALUE)

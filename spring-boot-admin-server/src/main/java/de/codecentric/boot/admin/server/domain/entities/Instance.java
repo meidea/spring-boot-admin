@@ -30,6 +30,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -45,6 +46,7 @@ import de.codecentric.boot.admin.server.domain.values.Registration;
 import de.codecentric.boot.admin.server.domain.values.StatusInfo;
 import de.codecentric.boot.admin.server.domain.values.Tags;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -321,6 +323,13 @@ public class Instance implements Serializable {
         } else if (event instanceof InstanceEnvChangedEvent) {
             EnvInfo env = ((InstanceEnvChangedEvent) event).getEnv();
             Map<String, ?> metaData = this.registration != null ? this.registration.getMetadata() : emptyMap();
+
+            if (StringUtils.hasText(env.getCloud())) {
+                Map<String, String> map = new HashMap<>();
+                map.put("cloud", env.getCloud());
+                this.tags.append(Tags.from(map));
+            }
+
             return new Instance(this.id,
                 event.getVersion(),
                 this.registration,

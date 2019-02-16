@@ -30,6 +30,7 @@ public class Endpoint implements Serializable {
     public static final String LIQUIBASE = "liquibase";
     public static final String FLYWAY = "flyway";
     public static final String ACTUATOR_INDEX = "actuator-index";
+    public static final String SERVICE_REGISTRY = "service-registry";
     private final String id;
     private final String url;
 

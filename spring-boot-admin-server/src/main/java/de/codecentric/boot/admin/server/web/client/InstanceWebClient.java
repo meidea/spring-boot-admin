@@ -130,6 +130,7 @@ public class InstanceWebClient {
                 webClientFilters.add(InstanceExchangeFilterFunctions.convertLegacyEndpoint(LegacyEndpointConverters.health()));
                 webClientFilters.add(InstanceExchangeFilterFunctions.convertLegacyEndpoint(LegacyEndpointConverters.info()));
                 webClientFilters.add(InstanceExchangeFilterFunctions.convertLegacyEndpoint(LegacyEndpointConverters.env()));
+                webClientFilters.add(InstanceExchangeFilterFunctions.convertLegacyEndpoint(LegacyEndpointConverters.serviceRegistry()));
                 webClientFilters.add(InstanceExchangeFilterFunctions.convertLegacyEndpoint(LegacyEndpointConverters.httptrace()));
                 webClientFilters.add(InstanceExchangeFilterFunctions.convertLegacyEndpoint(LegacyEndpointConverters.threaddump()));
                 webClientFilters.add(InstanceExchangeFilterFunctions.convertLegacyEndpoint(LegacyEndpointConverters.liquibase()));

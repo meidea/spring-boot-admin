@@ -82,6 +82,10 @@ public class LegacyEndpointConverters {
             convertUsing(RESPONSE_TYPE_MAP, RESPONSE_TYPE_MAP, LegacyEndpointConverters::convertEnv));
     }
 
+    public static LegacyEndpointConverter serviceRegistry() {
+        return new LegacyEndpointConverter(Endpoint.SERVICE_REGISTRY, flux -> flux);
+    }
+
     public static LegacyEndpointConverter httptrace() {
         return new LegacyEndpointConverter(Endpoint.HTTPTRACE,
             convertUsing(RESPONSE_TYPE_LIST_MAP, RESPONSE_TYPE_MAP, LegacyEndpointConverters::convertHttptrace));

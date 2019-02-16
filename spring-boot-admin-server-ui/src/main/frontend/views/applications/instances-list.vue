@@ -26,7 +26,7 @@
              :href="instance.registration.serviceUrl || instance.registration.healthUrl"
              @click.stop
           /><br>
-          <span class="is-muted" v-text="instance.info.hostname" />
+          <span class="is-muted" v-text="instance.info.hostname || instance.id" />
         </td>
         <td>
           <sba-tags :tags="instance.tags" />

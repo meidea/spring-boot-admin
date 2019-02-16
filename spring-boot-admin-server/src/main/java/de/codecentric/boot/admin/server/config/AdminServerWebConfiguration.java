@@ -20,6 +20,7 @@ import de.codecentric.boot.admin.server.domain.values.Registration;
 import de.codecentric.boot.admin.server.eventstore.InstanceEventPublisher;
 import de.codecentric.boot.admin.server.eventstore.InstanceEventStore;
 import de.codecentric.boot.admin.server.services.InstanceRegistry;
+import de.codecentric.boot.admin.server.services.ServiceRegsitryUpdater;
 import de.codecentric.boot.admin.server.utils.jackson.RegistrationBeanSerializerModifier;
 import de.codecentric.boot.admin.server.utils.jackson.RegistrationDeserializer;
 import de.codecentric.boot.admin.server.utils.jackson.SanitizingMapSerializer;
@@ -57,8 +58,8 @@ public class AdminServerWebConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public InstancesController instancesController(InstanceRegistry instanceRegistry, InstanceEventStore eventStore) {
-        return new InstancesController(instanceRegistry, eventStore);
+    public InstancesController instancesController(InstanceRegistry instanceRegistry, InstanceEventStore eventStore, ServiceRegsitryUpdater serviceRegsitryUpdater) {
+        return new InstancesController(instanceRegistry, eventStore, serviceRegsitryUpdater);
     }
 
     @Bean
