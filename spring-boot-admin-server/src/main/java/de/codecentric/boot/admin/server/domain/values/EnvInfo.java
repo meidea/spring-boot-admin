@@ -83,10 +83,10 @@ public class EnvInfo implements Serializable {
         List<?> propertySourceList = (List<?>) propertySources;
         for (Object propertySource : propertySourceList) {
             Map<String, Object> propertySourcesMap = (Map<String, Object>) propertySource;
-            if (!propertySourcesMap.containsKey(firstKey)) {
+            if (!propertySourcesMap.get("name").equals(firstKey)) {
                 continue;
             }
-            Object value = propertySourcesMap.get(firstKey);
+            Object value = propertySourcesMap.get("properties");
             if (null == value) {
                 continue;
             }
