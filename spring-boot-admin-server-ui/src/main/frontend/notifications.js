@@ -33,7 +33,7 @@ const notifyForSingleChange = (application, oldApplication) => {
   return createNotification(`${application.name} is now ${application.status}`, {
     tag: `${application.name}-${application.status}`,
     lang: 'en',
-    body: `was ${oldApplication.status}.`,
+    body: `was ${application.status}.`,
     icon: application.status === 'UP' ? 'assets/img/favicon.png' : 'assets/img/favicon-danger.png',
     renotify: true,
     timeout: 5000

@@ -139,7 +139,7 @@ public class InstancesController {
         LOGGER.debug("up instance with ID '{}'", id);
         return serviceRegsitryUpdater.upService(InstanceId.of(id))
             .map(v -> ResponseEntity.noContent().<Void>build())
-            .defaultIfEmpty(ResponseEntity.notFound().build());
+            .defaultIfEmpty(ResponseEntity.ok().build());
     }
 
     @PutMapping(path = "/instances/{id}/outOfService")

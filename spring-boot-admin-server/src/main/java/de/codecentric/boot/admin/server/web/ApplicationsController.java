@@ -56,7 +56,7 @@ import static java.util.stream.Collectors.toMap;
 public class ApplicationsController {
     private static final Logger log = LoggerFactory.getLogger(ApplicationsController.class);
     private static final ServerSentEvent<?> PING = ServerSentEvent.builder().comment("ping").build();
-    private static final Flux<ServerSentEvent<?>> PING_FLUX = Flux.interval(Duration.ZERO, Duration.ofSeconds(10L))
+    private static final Flux<ServerSentEvent<?>> PING_FLUX = Flux.interval(Duration.ZERO, Duration.ofSeconds(3L))
                                                                   .map(tick -> PING);
     private final InstanceRegistry registry;
     private final InstanceEventPublisher eventPublisher;
