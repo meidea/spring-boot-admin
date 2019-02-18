@@ -71,23 +71,19 @@ public class ServiceRegsitryUpdater {
 
         StatusUpdateInfo statusUpdateInfo = new StatusUpdateInfo(status);
 
-        Mono<Instance> result = instanceWebClient.instance(instance)
+        instanceWebClient.instance(instance)
                                 .post()
                                 .uri(Endpoint.SERVICE_REGISTRY)
                                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                                 .body(Mono.just(statusUpdateInfo), StatusUpdateInfo.class)
                                 .exchange()
                                 .log(log.getName(), Level.FINEST)
-                                .flatMap(response -> Mono.just(instance))
-                                .onErrorResume(ex -> Mono.just(logError(instance, ex)));
+                                .then();
 
         statusUpdater.updateStatus(instance.getId());
 
-        return result;
-    }
+        instance = instance.withStatusInfo(StatusInfo.valueOf(status));
 
-    protected Instance logError(Instance instance, Throwable ex) {
-        log.warn("Couldn't retrieve env for {}", instance, ex);
-        return instance;
+        return Mono.just(instance);
     }
 }
