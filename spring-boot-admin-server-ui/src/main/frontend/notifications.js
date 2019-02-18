@@ -30,7 +30,7 @@ const requestPermissions = async () => {
 };
 
 const notifyForSingleChange = (application, oldApplication) => {
-  return createNotification(`${application.name} is now ${application.status}`, {
+  return createNotification(`${application.name}`, {
     tag: `${application.name}-${application.status}`,
     lang: 'en',
     body: `was ${application.status}.`,
