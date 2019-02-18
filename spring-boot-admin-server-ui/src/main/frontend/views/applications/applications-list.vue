@@ -26,6 +26,8 @@
                            :has-notification-filters-support="hasNotificationFiltersSupport"
                            :notification-filters="notificationFilters"
                            @unregister="unregister"
+                           @outOfService="outOfService"
+                           @upService="upService"
                            @toggle-notification-filter-settings="toggleNotificationFilterSettings"
     />
     <notification-filter-settings v-if="showNotificationFilterSettingsObject"
@@ -97,9 +99,9 @@
           this.errors.push(e);
         }
       },
-      async outOfSservice(item) {
+      async outOfService(item) {
         try {
-          item.outOfSservice();
+          item.outOfService();
         } catch (e) {
           this.errors.push(e);
         }

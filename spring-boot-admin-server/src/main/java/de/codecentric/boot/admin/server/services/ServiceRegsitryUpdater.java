@@ -21,6 +21,7 @@ import de.codecentric.boot.admin.server.domain.entities.InstanceRepository;
 import de.codecentric.boot.admin.server.domain.values.Endpoint;
 import de.codecentric.boot.admin.server.domain.values.InstanceId;
 import de.codecentric.boot.admin.server.domain.values.StatusInfo;
+import de.codecentric.boot.admin.server.domain.values.StatusUpdateInfo;
 import de.codecentric.boot.admin.server.web.client.InstanceWebClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,13 +69,13 @@ public class ServiceRegsitryUpdater {
 
         log.debug("Update status for {}", instance);
 
-        StatusInfo statusInfo = StatusInfo.valueOf(status);
+        StatusUpdateInfo statusUpdateInfo = new StatusUpdateInfo(status);
 
         Mono<Instance> result = instanceWebClient.instance(instance)
                                 .post()
                                 .uri(Endpoint.SERVICE_REGISTRY)
                                 .contentType(MediaType.APPLICATION_JSON_UTF8)
-                                .body(Mono.just(statusInfo), StatusInfo.class)
+                                .body(Mono.just(statusUpdateInfo), StatusUpdateInfo.class)
                                 .exchange()
                                 .log(log.getName(), Level.FINEST)
                                 .flatMap(response -> Mono.just(instance))

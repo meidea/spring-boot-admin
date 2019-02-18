@@ -33,12 +33,6 @@ import java.util.Map;
 public class EnvInfo implements Serializable {
     private static final EnvInfo EMPTY = new EnvInfo(Collections.emptyMap());
 
-    private String cloud;
-
-    private String serverPort;
-    private String ipAddress;
-    private String hostname;
-
     private final Map<String, Object> values;
 
     private EnvInfo(Map<String, Object> values) {
@@ -46,13 +40,6 @@ public class EnvInfo implements Serializable {
             this.values = Collections.emptyMap();
         } else {
             this.values = Collections.unmodifiableMap(new LinkedHashMap<>(values));
-            this.serverPort = fetchValue("commandLineArgs", "server.port");
-            if (!StringUtils.hasText(serverPort)) {
-                this.serverPort = fetchValue("server.ports", "local.server.port");
-            }
-            this.ipAddress = fetchValue("springCloudClientHostInfo", "spring.cloud.client.ipAddress");
-            this.hostname = fetchValue("springCloudClientHostInfo", "spring.cloud.client.hostname");
-            this.cloud = fetchCloud(hostname);
         }
     }
 
@@ -86,31 +73,22 @@ public class EnvInfo implements Serializable {
             if (!propertySourcesMap.get("name").equals(firstKey)) {
                 continue;
             }
-            Object value = propertySourcesMap.get("properties");
-            if (null == value) {
+            Object firstValue = propertySourcesMap.get("properties");
+            if (null == firstValue) {
                 continue;
             }
-            Map<String, Object> first = (Map<String, Object>) value;
-            if (!first.containsKey(secondKey)) {
+            Map<String, Object> firstMap = (Map<String, Object>) firstValue;
+            if (!firstMap.containsKey(secondKey)) {
                 continue;
             }
-            return (String) first.get(secondKey);
+
+            Object secondValue = firstMap.get(secondKey);
+            if (null == secondValue) {
+                continue;
+            }
+            Map<String, Object> secondMap = (Map<String, Object>) secondValue;
+            return String.valueOf(secondMap.get("value"));
         }
         return null;
-    }
-
-    public String fetchCloud(String hostname) {
-        if (!StringUtils.hasText(hostname)) {
-            return null;
-        }
-        if (hostname.endsWith(".aws.dm") || hostname.endsWith(".aws.dm.vipkid.com.cn")) {
-            return "ali";
-        } else if (hostname.endsWith(".ten.dm") || hostname.endsWith(".ten.dm.vipkid.com.cn")) {
-            return "ten";
-        } else if (hostname.endsWith(".ali.dm") || hostname.endsWith(".ali.dm.vipkid.com.cn")) {
-            return "ali";
-        } else {
-            return null;
-        }
     }
 }

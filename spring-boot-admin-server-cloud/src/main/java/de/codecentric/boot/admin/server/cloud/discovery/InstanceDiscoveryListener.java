@@ -16,16 +16,23 @@
 
 package de.codecentric.boot.admin.server.cloud.discovery;
 
+import com.netflix.appinfo.InstanceInfo;
+import com.netflix.discovery.EurekaClient;
+import com.netflix.discovery.shared.Application;
+import com.netflix.discovery.shared.Applications;
 import de.codecentric.boot.admin.server.domain.entities.Instance;
 import de.codecentric.boot.admin.server.domain.entities.InstanceRepository;
 import de.codecentric.boot.admin.server.domain.values.InstanceId;
 import de.codecentric.boot.admin.server.domain.values.Registration;
 import de.codecentric.boot.admin.server.services.InstanceRegistry;
+import org.springframework.cloud.netflix.eureka.EurekaDiscoveryClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -49,6 +56,7 @@ public class InstanceDiscoveryListener {
     private static final Logger log = LoggerFactory.getLogger(InstanceDiscoveryListener.class);
     private static final String SOURCE = "discovery";
     private final DiscoveryClient discoveryClient;
+    private final EurekaClient eurekaClient;
     private final InstanceRegistry registry;
     private final InstanceRepository repository;
     private final HeartbeatMonitor monitor = new HeartbeatMonitor();
@@ -67,9 +75,11 @@ public class InstanceDiscoveryListener {
     private Set<String> services = new HashSet<>(Collections.singletonList("*"));
 
     public InstanceDiscoveryListener(DiscoveryClient discoveryClient,
+                                     EurekaClient eurekaClient,
                                      InstanceRegistry registry,
                                      InstanceRepository repository) {
         this.discoveryClient = discoveryClient;
+        this.eurekaClient = eurekaClient;
         this.registry = registry;
         this.repository = repository;
     }
@@ -101,9 +111,7 @@ public class InstanceDiscoveryListener {
     }
 
     protected void discover() {
-        Flux.fromIterable(discoveryClient.getServices())
-            .filter(this::shouldRegisterService)
-            .flatMapIterable(discoveryClient::getInstances)
+        Flux.fromIterable(getCustomInstance())
             .flatMap(this::registerInstance)
             .collect(Collectors.toSet())
             .flatMap(this::removeStaleInstances)
@@ -162,5 +170,26 @@ public class InstanceDiscoveryListener {
 
     public void setServices(Set<String> services) {
         this.services = services;
+    }
+
+    protected List<ServiceInstance> getCustomInstance() {
+        Applications applications = eurekaClient.getApplications();
+        if (applications == null) {
+            return Collections.emptyList();
+        } else {
+            List<Application> registered = applications.getRegisteredApplications();
+            List<ServiceInstance> instances = new ArrayList();
+            for (Application app : registered) {
+                if (this.shouldRegisterService(app.getName().toLowerCase())) {
+                    if (!app.getInstancesAsIsFromEureka().isEmpty()) {
+                        for (InstanceInfo instanceInfo : app.getInstancesAsIsFromEureka()) {
+                            instances.add(new EurekaDiscoveryClient.EurekaServiceInstance(instanceInfo));
+                        }
+                    }
+                }
+
+            }
+            return instances;
+        }
     }
 }

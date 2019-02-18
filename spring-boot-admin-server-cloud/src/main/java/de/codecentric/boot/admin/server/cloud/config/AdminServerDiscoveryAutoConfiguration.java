@@ -50,9 +50,10 @@ public class AdminServerDiscoveryAutoConfiguration {
     @ConfigurationProperties(prefix = "spring.boot.admin.discovery")
     public InstanceDiscoveryListener instanceDiscoveryListener(ServiceInstanceConverter serviceInstanceConverter,
                                                                DiscoveryClient discoveryClient,
+                                                               EurekaClient eurekaClient,
                                                                InstanceRegistry registry,
                                                                InstanceRepository repository) {
-        InstanceDiscoveryListener listener = new InstanceDiscoveryListener(discoveryClient, registry, repository);
+        InstanceDiscoveryListener listener = new InstanceDiscoveryListener(discoveryClient, eurekaClient, registry, repository);
         listener.setConverter(serviceInstanceConverter);
         return listener;
     }

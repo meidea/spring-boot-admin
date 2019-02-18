@@ -119,7 +119,7 @@ public class Instance implements Serializable {
         this.envInfo = envInfo;
         this.endpoints = registered && registration != null ? endpoints.withEndpoint(Endpoint.HEALTH,
             registration.getHealthUrl()
-        ) : endpoints;
+        ).withEndpoint(Endpoint.ENV, registration.getManagementUrl() + "/env") : endpoints;
         this.unsavedEvents = unsavedEvents;
         this.buildVersion = buildVersion;
         this.tags = tags;
@@ -179,7 +179,7 @@ public class Instance implements Serializable {
         Endpoints endpointsWithHealth = this.registration != null ? endpoints.withEndpoint(
             Endpoint.HEALTH,
             this.registration.getHealthUrl()
-        ) : endpoints;
+        ).withEndpoint(Endpoint.ENV, registration.getManagementUrl() + "/env") : endpoints;
         if (Objects.equals(this.endpoints, endpointsWithHealth)) {
             return this;
         }
@@ -251,7 +251,7 @@ public class Instance implements Serializable {
                 EnvInfo.empty(),
                 Endpoints.empty(),
                 updateBuildVersion(registration.getMetadata()),
-                updateTags(registration.getMetadata()),
+                appendTag(EnvInfo.empty(), updateTags(registration.getMetadata())),
                 unsavedEvents
             );
 
@@ -267,7 +267,7 @@ public class Instance implements Serializable {
                 this.envInfo,
                 this.endpoints,
                 updateBuildVersion(registration.getMetadata(), this.info.getValues()),
-                updateTags(registration.getMetadata(), this.info.getValues()),
+                appendTag(this.envInfo, updateTags(registration.getMetadata(), this.info.getValues())),
                 unsavedEvents
             );
 
@@ -316,31 +316,24 @@ public class Instance implements Serializable {
                 this.envInfo,
                 this.endpoints,
                 updateBuildVersion(metaData, info.getValues()),
-                updateTags(metaData, info.getValues()),
+                appendTag(this.envInfo, updateTags(metaData, info.getValues())),
                 unsavedEvents
             );
 
         } else if (event instanceof InstanceEnvChangedEvent) {
             EnvInfo env = ((InstanceEnvChangedEvent) event).getEnv();
             Map<String, ?> metaData = this.registration != null ? this.registration.getMetadata() : emptyMap();
-
-            if (StringUtils.hasText(env.getCloud())) {
-                Map<String, String> map = new HashMap<>();
-                map.put("cloud", env.getCloud());
-                this.tags.append(Tags.from(map));
-            }
-
             return new Instance(this.id,
                 event.getVersion(),
                 this.registration,
                 this.registered,
                 this.statusInfo,
                 this.statusTimestamp,
-                this.info,
+                appendInfo(env, this.info),
                 env,
                 this.endpoints,
                 updateBuildVersion(metaData, info.getValues()),
-                updateTags(metaData, info.getValues()),
+                appendTag(env, updateTags(metaData, info.getValues())),
                 unsavedEvents
             );
 
@@ -386,5 +379,57 @@ public class Instance implements Serializable {
     @SafeVarargs
     private final Tags updateTags(Map<String, ?>... sources) {
         return Arrays.stream(sources).map(source -> Tags.from(source, "tags")).reduce(Tags.empty(), Tags::append);
+    }
+
+    protected Info appendInfo(EnvInfo envInfo, Info info) {
+        String serverPort = envInfo.fetchValue("commandLineArgs", "server.port");
+        if (!StringUtils.hasText(serverPort)) {
+            serverPort = envInfo.fetchValue("server.ports", "local.server.port");
+        }
+        String ipAddress = envInfo.fetchValue("springCloudClientHostInfo", "spring.cloud.client.ip-address");
+        String hostname = envInfo.fetchValue("springCloudClientHostInfo", "spring.cloud.client.hostname");
+        String cloud = fetchCloud(hostname);
+
+        Map<String, Object> infoDetails = new HashMap<>();
+        infoDetails.putAll(info.getValues());
+        if (!infoDetails.containsKey("serverPort")) {
+            infoDetails.put("serverPort", serverPort);
+        }
+        if (!infoDetails.containsKey("ipAddress")) {
+            infoDetails.put("ipAddress", ipAddress);
+        }
+        if (!infoDetails.containsKey("hostname")) {
+            infoDetails.put("hostname", hostname);
+        }
+        if (!infoDetails.containsKey("cloud")) {
+            infoDetails.put("cloud", cloud);
+        }
+        return Info.from(infoDetails);
+    }
+
+    protected Tags appendTag(EnvInfo envInfo, Tags tags) {
+        String hostname = envInfo.fetchValue("springCloudClientHostInfo", "spring.cloud.client.hostname");
+        String cloud = fetchCloud(hostname);
+        if (StringUtils.hasText(cloud)) {
+            Map<String, String> map = new HashMap<>();
+            map.put("cloud", cloud);
+            return tags.append(Tags.from(map));
+        }
+        return tags;
+    }
+
+    protected String fetchCloud(String hostname) {
+        if (!StringUtils.hasText(hostname)) {
+            return null;
+        }
+        if (hostname.endsWith(".aws.dm") || hostname.endsWith(".aws.dm.vipkid.com.cn")) {
+            return "ali";
+        } else if (hostname.endsWith(".ten.dm") || hostname.endsWith(".ten.dm.vipkid.com.cn")) {
+            return "ten";
+        } else if (hostname.endsWith(".ali.dm") || hostname.endsWith(".ali.dm.vipkid.com.cn")) {
+            return "ali";
+        } else {
+            return "UNKNOWN";
+        }
     }
 }
