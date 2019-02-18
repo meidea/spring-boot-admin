@@ -36,7 +36,7 @@ import {faSignOutAlt} from '@fortawesome/free-solid-svg-icons/faSignOutAlt';
 import {faStepBackward} from '@fortawesome/free-solid-svg-icons/faStepBackward';
 import {faStepForward} from '@fortawesome/free-solid-svg-icons/faStepForward';
 import {faTimesCircle} from '@fortawesome/free-solid-svg-icons/faTimesCircle';
-import {faCheckCircle} from '@fortawesome/free-solid-svg-icons/faCheckCircle';
+import {faTimesCircle as farTimesCircle} from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import {faTrash} from '@fortawesome/free-solid-svg-icons/faTrash';
 import {faUserCircle} from '@fortawesome/free-solid-svg-icons/faUserCircle';
 import {faWrench} from '@fortawesome/free-solid-svg-icons/faWrench';
