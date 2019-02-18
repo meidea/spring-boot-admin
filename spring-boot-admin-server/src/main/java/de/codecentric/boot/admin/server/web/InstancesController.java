@@ -53,7 +53,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class InstancesController {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstancesController.class);
     private static final ServerSentEvent<?> PING = ServerSentEvent.builder().comment("ping").build();
-    private static final Flux<ServerSentEvent<?>> PING_FLUX = Flux.interval(Duration.ZERO, Duration.ofSeconds(10L))
+    private static final Flux<ServerSentEvent<?>> PING_FLUX = Flux.interval(Duration.ZERO, Duration.ofSeconds(3L))
                                                                   .map(tick -> PING);
     private final InstanceRegistry registry;
     private final InstanceEventStore eventStore;

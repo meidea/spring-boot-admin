@@ -42,7 +42,7 @@ public class RegistrationApplicationListener implements InitializingBean, Dispos
     private final ThreadPoolTaskScheduler taskScheduler;
     private boolean autoDeregister = false;
     private boolean autoRegister = true;
-    private Duration registerPeriod = Duration.ofSeconds(10);
+    private Duration registerPeriod = Duration.ofSeconds(3);
     @Nullable
     private volatile ScheduledFuture<?> scheduledTask;
 
