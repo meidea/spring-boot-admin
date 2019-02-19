@@ -135,19 +135,15 @@ public class InstancesController {
     }
 
     @PutMapping(path = "/instances/{id}/upService")
-    public Mono<ResponseEntity<Void>> upService(@PathVariable String id) {
-        LOGGER.debug("up instance with ID '{}'", id);
-        return serviceRegsitryUpdater.upService(InstanceId.of(id))
-            .map(v -> ResponseEntity.noContent().<Void>build())
-            .defaultIfEmpty(ResponseEntity.ok().build());
+    public Mono<ResponseEntity<String>> upService(@PathVariable String id) {
+        LOGGER.debug("upService instance with ID '{}'", id);
+        return serviceRegsitryUpdater.upService(InstanceId.of(id)).flatMap(v -> Mono.just(ResponseEntity.ok().body("ok")));
     }
 
     @PutMapping(path = "/instances/{id}/outOfService")
-    public Mono<ResponseEntity<Void>> outOfService(@PathVariable String id) {
+    public Mono<ResponseEntity<String>> outOfService(@PathVariable String id) {
         LOGGER.debug("outOfService instance with ID '{}'", id);
-        return serviceRegsitryUpdater.outOfService(InstanceId.of(id))
-            .map(v -> ResponseEntity.noContent().<Void>build())
-            .defaultIfEmpty(ResponseEntity.ok().build());
+        return serviceRegsitryUpdater.outOfService(InstanceId.of(id)).flatMap(v -> Mono.just(ResponseEntity.ok().body("ok")));
     }
 
     @GetMapping(path = "/instances/events", produces = MediaType.APPLICATION_JSON_VALUE)

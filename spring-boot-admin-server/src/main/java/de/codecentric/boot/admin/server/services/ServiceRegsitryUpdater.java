@@ -78,11 +78,11 @@ public class ServiceRegsitryUpdater {
                                 .body(Mono.just(statusUpdateInfo), StatusUpdateInfo.class)
                                 .exchange()
                                 .log(log.getName(), Level.FINEST)
+                                .flatMap(response -> response.bodyToMono(String.class))
+                                .doOnNext(res -> {
+                                    log.info("update service status response: {}", res);
+                                })
                                 .then();
-
-        statusUpdater.updateStatus(instance.getId());
-
-        instance = instance.withStatusInfo(StatusInfo.valueOf(status));
 
         return Mono.just(instance);
     }
