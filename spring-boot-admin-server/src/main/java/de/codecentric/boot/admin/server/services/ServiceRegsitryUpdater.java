@@ -71,7 +71,7 @@ public class ServiceRegsitryUpdater {
 
         StatusUpdateInfo statusUpdateInfo = new StatusUpdateInfo(status);
 
-        instanceWebClient.instance(instance)
+        return instanceWebClient.instance(instance)
                                 .post()
                                 .uri(Endpoint.SERVICE_REGISTRY)
                                 .contentType(MediaType.APPLICATION_JSON_UTF8)
@@ -82,8 +82,6 @@ public class ServiceRegsitryUpdater {
                                 .doOnNext(res -> {
                                     log.info("update service status response: {}", res);
                                 })
-                                .then();
-
-        return Mono.just(instance);
+                                .flatMap(v -> Mono.just(instance));
     }
 }
